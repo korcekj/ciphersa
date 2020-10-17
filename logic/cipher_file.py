@@ -126,12 +126,13 @@ def write_file(file, data, mode='wb'):
 def encrypt_file(public_key_path, in_file, out_file=None, chunk_size=64 * 1024):
     if not out_file:
         out_file = in_file + '.enc'
+    # Get public RSA key from the file
+    public_rsa_key = get_rsa_key(public_key_path)
     # Open files
     file_in = open(in_file, 'rb')
     file_out = open(out_file, 'wb')
     # Generate AES key and encrypt it by RSA public key, write it to the file
     aes_key = gen_key()
-    public_rsa_key = get_rsa_key(public_key_path)
     c1 = encrypt_key_by_public_key(aes_key, public_rsa_key)
     file_out.write(c1)
     # Write NONCE to the file
@@ -154,12 +155,13 @@ def encrypt_file(public_key_path, in_file, out_file=None, chunk_size=64 * 1024):
 def decrypt_file(private_key_path, in_file, out_file=None, chunk_size=64 * 1024):
     if not out_file:
         out_file = in_file[:-4]
+    # Get private RSA key from the file
+    private_rsa_key = get_rsa_key(private_key_path, False)
     # Open files
     file_in = open(in_file, 'rb')
     file_out = open(out_file, 'wb')
     # Decrypt AES key by RSA private key
     c1 = file_in.read(RSA_KEY_SIZE)
-    private_rsa_key = get_rsa_key(private_key_path, False)
     aes_key = decrypt_key_by_private_key(c1, private_rsa_key)
     # Read NONCE from the file
     nonce = file_in.read(NONCE_SIZE)
