@@ -22,7 +22,7 @@ $ ciphersa e -in your_dir/file.txt -k your_dir/id_rsa.pubk
 ## Decryption
 * `-k <file_path> [required] - Cesta k súboru private RSA kľúča`
 * `-in <file_path> [required] - Cesta k zašifrovanému súboru`
-* `-out <file_path> - Cesta k vústupneému súboru, výsledok dešifrovania`
+* `-out <file_path> - Cesta k vústupnému súboru, výsledok dešifrovania`
 ```bash
 $ ciphersa d -in your_dir/file.txt.enc -k your_dir/id_rsa.pk
 ```
