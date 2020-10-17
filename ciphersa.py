@@ -44,6 +44,7 @@ def enc_file(key, in_file, out_file):
         elapsed_time = t1 - t0
         click.echo(click.style(f"Done in: {elapsed_time:0.3f} seconds", fg='blue', bold=True))
 
+
 @main.command('rsa')
 @click.option('-out', '--out_dir', type=click.Path(), help='Output directory')
 def rsa_keypair(out_dir):
