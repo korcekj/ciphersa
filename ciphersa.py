@@ -2,7 +2,7 @@ import time
 import sys
 import click
 
-from src.cipher_rsa_file import *
+from src.cipher_file import *
 
 
 @click.group()
