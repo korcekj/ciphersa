@@ -126,69 +126,65 @@ def write_file(file, data, mode='wb'):
 def encrypt_file(public_key_path, in_file, out_file=None, chunk_size=64 * 1024):
     if not out_file:
         out_file = in_file + '.enc'
+
     # Get public RSA key from the file
     public_rsa_key = get_rsa_key(public_key_path)
+
     # Open files
-    file_in = open(in_file, 'rb')
-    file_out = open(out_file, 'wb')
-    # Generate AES key and encrypt it by RSA public key, write it to the file
-    aes_key = gen_key()
-    c1 = encrypt_key_by_public_key(aes_key, public_rsa_key)
-    file_out.write(c1)
-    # Write NONCE to the file
-    cipher = AES.new(aes_key, AES.MODE_GCM)
-    file_out.write(cipher.nonce)
-    # Write data to the output file according to chunk size
-    data = file_in.read(chunk_size)
-    while len(data) != 0:
-        encrypted_data = cipher.encrypt(data)
-        file_out.write(encrypted_data)
-        data = file_in.read(chunk_size)
-    # Write TAG to the footer
-    tag = cipher.digest()
-    file_out.write(tag)
-    # Close files
-    file_in.close()
-    file_out.close()
+    with open(in_file, 'rb') as file_in:
+        with open(out_file, 'wb') as file_out:
+            # Generate AES key and encrypt it by RSA public key, write it to the file
+            aes_key = gen_key()
+            c1 = encrypt_key_by_public_key(aes_key, public_rsa_key)
+            file_out.write(c1)
+            # Write NONCE to the file
+            cipher = AES.new(aes_key, AES.MODE_GCM)
+            file_out.write(cipher.nonce)
+            # Write data to the output file according to chunk size
+            data = file_in.read(chunk_size)
+            while len(data) != 0:
+                encrypted_data = cipher.encrypt(data)
+                file_out.write(encrypted_data)
+                data = file_in.read(chunk_size)
+            # Write TAG to the footer
+            tag = cipher.digest()
+            file_out.write(tag)
 
 
 def decrypt_file(private_key_path, in_file, out_file=None, chunk_size=64 * 1024):
     if not out_file:
         out_file = in_file[:-4]
+
     # Get private RSA key from the file
     private_rsa_key = get_rsa_key(private_key_path, False)
+
     # Open files
-    file_in = open(in_file, 'rb')
-    file_out = open(out_file, 'wb')
-    # Decrypt AES key by RSA private key
-    c1 = file_in.read(RSA_KEY_SIZE)
-    aes_key = decrypt_key_by_private_key(c1, private_rsa_key)
-    # Read NONCE from the file
-    nonce = file_in.read(NONCE_SIZE)
-    cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
-    # Calculate size of the original file
-    file_in_size = os.path.getsize(in_file)
-    encrypted_data_size = file_in_size - RSA_KEY_SIZE - NONCE_SIZE - TAG_SIZE  # Size without encrypted key, nonce, tag
-    # Decrypt data according to chunk size
-    for _ in range(
-            int(encrypted_data_size / chunk_size)):
-        data = file_in.read(chunk_size)
-        decrypted_data = cipher.decrypt(data)
-        file_out.write(decrypted_data)
-    # Read last encrypted data before the footer
-    data = file_in.read(
-        int(encrypted_data_size % chunk_size))
-    decrypted_data = cipher.decrypt(data)
-    file_out.write(decrypted_data)
-    # Read TAG from the file and verify integrity
-    tag = file_in.read(TAG_SIZE)
-    try:
-        cipher.verify(tag)
-    except ValueError:
-        file_in.close()
-        file_out.close()
-        os.remove(out_file)
-        raise CipherException('Integrity validation failed')
-    # Close files
-    file_in.close()
-    file_out.close()
+    with open(in_file, 'rb') as file_in:
+        with open(out_file, 'wb') as file_out:
+            # Decrypt AES key by RSA private key
+            c1 = file_in.read(RSA_KEY_SIZE)
+            aes_key = decrypt_key_by_private_key(c1, private_rsa_key)
+            # Read NONCE from the file
+            nonce = file_in.read(NONCE_SIZE)
+            cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
+            # Calculate size of the original file
+            file_in_size = os.path.getsize(in_file)
+            encrypted_data_size = file_in_size - RSA_KEY_SIZE - NONCE_SIZE - TAG_SIZE  # Size without encrypted key, nonce, tag
+            # Decrypt data according to chunk size
+            for _ in range(
+                    int(encrypted_data_size / chunk_size)):
+                data = file_in.read(chunk_size)
+                decrypted_data = cipher.decrypt(data)
+                file_out.write(decrypted_data)
+            # Read last encrypted data before the footer
+            data = file_in.read(
+                int(encrypted_data_size % chunk_size))
+            decrypted_data = cipher.decrypt(data)
+            file_out.write(decrypted_data)
+            # Read TAG from the file and verify integrity
+            tag = file_in.read(TAG_SIZE)
+            try:
+                cipher.verify(tag)
+            except ValueError:
+                os.remove(out_file)
+                raise CipherException('Integrity validation failed')
