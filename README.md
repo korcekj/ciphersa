@@ -26,3 +26,8 @@ $ ciphersa e -in your_dir/file.txt -k your_dir/id_rsa.pubk
 ```bash
 $ ciphersa d -in your_dir/file.txt.enc -k your_dir/id_rsa.pk
 ```
+## Generating RSA keypair
+* `-out <dir_path> - Cesta k vústupnému priečinku, ak nie je uvedený, bude vygenerovaný v aktuálnom priečinku`
+```bash
+$ ciphersa rsa -out your_dir
+```
